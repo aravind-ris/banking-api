@@ -1,0 +1,9 @@
+[
+  {
+    "id": 1,
+    "type": "savings",
+    "balance": 123456,
+    "currency": "rupees",
+    "city": "chennai"
+  }
+]

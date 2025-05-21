@@ -1,0 +1,9 @@
+[
+  {
+    "id": "001",
+    "accountId": "string",
+    "amount": 25898,
+    "type": "string",
+    "date": "2024-01-23 15:45:30"
+  }
+]
