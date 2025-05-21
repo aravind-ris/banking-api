@@ -1,0 +1,8 @@
+[{
+	id: 1,
+	type: "Fixed Deposit",
+	balance: 7895641,
+	CardDeliveryStatus: "Delivered",
+	currency: "INR",
+	city: "Chennai"
+}]

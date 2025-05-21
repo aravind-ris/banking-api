@@ -1,0 +1,6 @@
+[{
+	AccountId: 1,
+	Type_Of_Card: "SAVINGS",
+	Expiry-Date: "5/15/2025",
+	Card_Status: "Active"
+}]

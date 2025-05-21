@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="fields" format="json">
+      <types:shape format="weave" example="examples/salesforceObject-1.txt"><![CDATA[%dw 2.0
+
+type fields = Array<{|  id: Number {"typeId": "int"},   accountId: Number {"typeId": "double"},   TypeOfCard: String,   expiryDateOfCard: String|}> {"example": "[{\\\"id\\\":123,\\\"accountId\\\":800545562559,\\\"TypeOfCard\\\":\\\"Debit\\\",\\\"expiryDateOfCard\\\":\\\"2025-05-07 13:48:00\\\"}]"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="pushaccData" format="json">
+      <types:shape format="weave" example="examples/pust-accountDetails.txt"><![CDATA[%dw 2.0
+
+type pushaccData = Array<{|  id: Number {"typeId": "int"},   "type": String,   balance: Number {"typeId": "int"},   CardDeliveryStatus: String,   currency: String,   city: String|}> {"example": "[{\\\"id\\\":1,\\\"type\\\":\\\"Fixed Deposit\\\",\\\"balance\\\":7895641,\\\"CardDeliveryStatus\\\":\\\"Delivered\\\",\\\"currency\\\":\\\"INR\\\",\\\"city\\\":\\\"Chennai\\\"}]"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="cardDetailsbyAccId" format="json">
+      <types:shape format="weave" example="examples/getCardDetailsbyAccountId.txt"><![CDATA[%dw 2.0
+
+type cardDetailsbyAccId = Array<{|  AccountId: Number {"typeId": "int"},   Type_Of_Card: String,   "Expiry-Date": String,   Card_Status: String|}> {"example": "[{\\\"AccountId\\\":1,\\\"Type_Of_Card\\\":\\\"SAVINGS\\\",\\\"Expiry-Date\\\":\\\"5\\/15\\/2025\\\",\\\"Card_Status\\\":\\\"Active\\\"}]"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#481d1dec-bce7-49ca-8a79-1fde07a2f011">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="fields"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#1aa63e23-7a99-493d-b47c-7a5729691de0">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="pushaccData"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#559f559d-04bb-4c68-9e8e-7921a44ecb0e">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="pushaccData"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#a59ae44d-0ccd-465e-9f6b-6cf58d1b35cf">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="pushaccData"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#5f22823f-869a-48bd-b74f-fa3451ce35ae">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="cardDetailsbyAccId"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

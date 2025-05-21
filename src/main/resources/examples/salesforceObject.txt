@@ -1,0 +1,6 @@
+[{
+	id: 123,
+	acciuntId: 800545562559,
+	TypeOfCard: "Debit",
+	expiryDateOfCard: "2025-05-07 13:48:00"
+}]

@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+    <http:listener-config name="insurance-application-api--httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="insurance-application-api--config" api="insurance-application-api-.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <db:config name="Database_Config" doc:name="Database Config" doc:id="3bcf7fb0-6de8-49c3-9075-408b956d1965" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="Aravind@123" database="insurance" />
+	</db:config>
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="899de03e-fca4-43b7-8f9b-bf9646dd5e2a" >
+		<salesforce:basic-connection username="aravinth1799953@agentforce.com" password="Aravind@123" securityToken="rr6orAdGc1tEcKjIvRv3eCW4B" />
+	</salesforce:sfdc-config>
+	<flow name="insurance-application-api--main">
+        <http:listener config-ref="insurance-application-api--httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="insurance-application-api--config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\accounts:insurance-application-api--config">
+		<salesforce:query doc:name="Query" doc:id="d1fda652-1f34-4b85-bd24-be740c930808" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query ><![CDATA[select id__c, TypeOfAccount__c, Balance__c, city__c, Currency__c from INSaccount__c]]></salesforce:salesforce-query>
+		</salesforce:query>
+		<ee:transform doc:name="Mapping the database fields" doc:id="a59ae44d-0ccd-465e-9f6b-6cf58d1b35cf">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	id: payload01.id__c default 0,
+	"type": payload01.TypeOfAccount__c default "",
+	balance: payload01.Balance__c default 0,
+	currency: payload01.Currency__c default "",
+	city: payload01.city__c default ""
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="df9de964-ccb7-4404-a84e-3aabcb082d45" message="#[payload]" />
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="f39efb84-beb0-4a12-b6b5-db2727403b56" />
+    </flow>
+    <flow name="get:\cards:insurance-application-api--config">
+		<salesforce:query doc:name="Querying cards details from salesforce" doc:id="577a6960-9868-4b17-8ba9-c742826c4915" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query><![CDATA[select accountId__c, Card_Type__c, expiryDateOfCard__c, statusOfCard__c from cardDetail__c 
+WHERE accountId__c = :accountId__c ]]></salesforce:salesforce-query>
+				<salesforce:parameters><![CDATA[#[{
+	accountId__c: attributes.queryParams.accountId
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<choice doc:name="Choice" doc:id="3cb3af4f-c5f2-464c-8d53-8660c8317c0c" >
+			<when expression="#[!isEmpty(payload)]">
+				<ee:transform doc:name="Transform Message" doc:id="5f22823f-869a-48bd-b74f-fa3451ce35ae">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	AccountId: payload01.accountId__c default 0,
+	Type_Of_Card: payload01.Card_Type__c default "",
+	"Expiry-Date": payload01.expiryDateOfCard__c as String default "",
+	Card_Status: payload01.statusOfCard__c default ""
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-payload value="#[payload]" doc:name="Set Payload" doc:id="8d7561e7-96ea-47f0-9a8e-b59749d4077c" />
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Transform Message" doc:id="9f6f8da2-6cfd-47d1-88ec-6132adbd7a41" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message" : "Record Not Found"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+    </flow>
+    <flow name="get:\transactions:insurance-application-api--config">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+[
+  {
+    id: "001",
+    accountId: "string",
+    amount: 25898,
+    "type": "string",
+    date: "2024-01-23 15:45:30"
+  }
+] as Array {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\accounts\(accountId):insurance-application-api--config">
+		<scatter-gather doc:name="Scatter-Gather" doc:id="2e534e0f-c8aa-4990-94b5-b6d0c796d15c" >
+			<route >
+				<db:select doc:name="Select" doc:id="09da5eae-7fd1-4ecb-b481-ede078624463" config-ref="Database_Config">
+					<db:sql><![CDATA[select * from accounts where id = :id]]></db:sql>
+					<db:input-parameters><![CDATA[#[{
+	id: attributes.uriParams.accountId
+}]]]></db:input-parameters>
+				</db:select>
+				<choice doc:name="Choice" doc:id="68576230-adb1-4e73-968d-67e440130833">
+					<when expression="#[!isEmpty(payload)]">
+						<ee:transform doc:name="Transform Message" doc:id="f04db23c-b681-41ae-ae8d-1f4bdeff5106">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</when>
+			<otherwise>
+						<ee:transform doc:name="Transform Message" doc:id="445c0216-a4aa-40e3-ac50-0137fb9e8b42">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Message: "Not Found"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</otherwise>
+				</choice>
+			</route>
+			<route >
+				<salesforce:query doc:name="Query" doc:id="02cd66f6-70ff-4c09-a974-edbf8948b891" config-ref="Salesforce_Config">
+					<salesforce:salesforce-query ><![CDATA[select id__c, TypeOfAccount__c, Balance__c, city__c, Currency__c from INSaccount__c 
+WHERE id__c = :id__c]]></salesforce:salesforce-query>
+					<salesforce:parameters ><![CDATA[#[{
+	id__c: attributes.uriParams.accountId
+}]]]></salesforce:parameters>
+				</salesforce:query>
+				<choice doc:name="Choice" doc:id="2c0ccebb-7f77-489c-b373-2f6270b72a3d" >
+					<when expression="#[!isEmpty(payload)]">
+						<ee:transform doc:name="Transform Message" doc:id="2b6d8138-1dd0-402d-8e46-51f979562f25" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</when>
+					<otherwise >
+						<ee:transform doc:name="Transform Message" doc:id="6d78ecbf-3002-4f4f-9cd1-a728569e9944" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Message: "Record Not Found"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</otherwise>
+				</choice>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="1c819af0-6b8d-4dcb-a874-70d479d4cc63" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload[1]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="a9a00aa8-913a-49ef-9036-bfb09339028c" type="ANY">
+				<set-payload value="#[error.detailedDescription]" doc:name="Set Payload" doc:id="ad2462c9-ee1e-467a-af1a-c74cf01689db" />
+			</on-error-continue>
+		</error-handler>
+    </flow>
+    <flow name="post:\accounts:insurance-application-api--config">
+        <ee:transform doc:name="Appending the data with payload" doc:id="090bfff9-a422-4ff2-9f2e-5d74f7446582">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+			<ee:variables >
+			</ee:variables>
+        </ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="42b97645-16af-4776-91bc-d9f8cb4f4025" message="Payload after Appending #[payload]"/>
+		<ee:transform doc:name="Verifying the Data in Postman" doc:id="47927147-3cd2-4c5d-a085-b644e49fa813" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="45256849-fc1b-4a4f-85b0-fe9ad2502cee" message="#[payload]"/>
+		<scatter-gather doc:name="Simultaneous-Routing" doc:id="d9000353-00d0-460b-aec6-c6def65bed2c" >
+			<route >
+				<ee:transform doc:name="Mapping the data to DB table" doc:id="1aa63e23-7a99-493d-b47c-7a5729691de0">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	CardDeliveryStatus: payload01.CardDeliveryStatus,
+	balance: payload01.balance as String,
+	city: payload01.city,
+	currency: payload01.currency,
+	id: payload01.id as String,
+	typeOfAccount: payload01."type"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<db:bulk-insert doc:name="Inserting the transformed data to DB table" doc:id="333c0edc-2197-47fd-a789-291da02ab123" config-ref="Database_Config">
+			<db:sql><![CDATA[insert into accounts(id, typeOfAccount, balance, CardDeliveryStatus, currency, city) values(:id, :typeOfAccount, :balance, :CardDeliveryStatus, :currency, :city)]]></db:sql>
+		</db:bulk-insert>
+			</route>
+			<route >
+				<ee:transform doc:name="Mapping with Salesforce Object Fields" doc:id="559f559d-04bb-4c68-9e8e-7921a44ecb0e" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	id__c: payload01.id,
+	TypeOfAccount__c: upper(payload01."type"),
+	Balance__c: payload01.balance,
+	Currency__c: payload01.currency,
+	city__c: payload01.city,
+	CradDeliveryStatus__c: payload01.CardDeliveryStatus
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="44b97341-78f7-4c56-9d00-a17b8738ec8a" />
+				<try doc:name="Try" doc:id="e69b3a2d-4e49-40fe-b06d-8aa4b397e1fd">
+					<salesforce:create type="INSaccount__c" doc:name="Creating new Records into INSaccount Object" doc:id="203d3fa5-edac-4374-8ed2-5047ee368058" config-ref="Salesforce_Config"/>
+					<!-- [STUDIO:"Inserting Account Details into INSaccount Object"]<salesforce:upsert objectType="INSaccount__c" externalIdFieldName="id__c" doc:name="Inserting Account Details into INSaccount Object" doc:id="ec8ccd01-705f-4d1a-8da7-f385f740e771" config-ref="Salesforce_Config" /> [STUDIO] -->
+					<error-handler>
+						<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="2fc48052-2093-456a-bb74-4fba71776054" type="ANY">
+							<logger level="INFO" doc:name="Logger" doc:id="c17e3bec-a7d5-42ad-acc5-e12b4a3d3f6d" message="#[error.errorMessage]" />
+						</on-error-propagate>
+					</error-handler>
+				</try>
+			</route>
+		</scatter-gather>
+		<set-payload value="#[{&#10;	&quot;message&quot;: 'Records inserted successfully'&#10;}]" doc:name="Set Payload" doc:id="5fcf9c4c-acf9-47c1-be57-306458b97ce6" />
+		<logger level="INFO" doc:name="Logger" doc:id="03ac714d-445f-4b77-a318-8a8e152371a3" message="Inserted Into Table #[payload]"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="3b3017c3-a3ff-4f6f-b573-d8598c265d29" type="ANY">
+				<logger level="INFO" doc:name="Logger" doc:id="e9bdb874-c5a8-4cb5-afeb-5c1396260e0c" message="#[error.errorMessage]"/>
+			</on-error-propagate>
+		</error-handler>
+    </flow>
+	<flow name="post:\cards:application\json:insurance-application-api--config">
+		<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  Message: "New Card Issued"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+</mule>
